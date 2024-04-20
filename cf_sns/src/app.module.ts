@@ -6,6 +6,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { PostsModel } from "./posts/entities/posts.entity";
 import { UsersModule } from './users/users.module';
 import { UsersModel } from "./users/entities/users.entity";
+import { AuthModule } from './auth/auth.module';
 
 @Module({
   imports: [
@@ -22,6 +23,7 @@ import { UsersModel } from "./users/entities/users.entity";
       synchronize: true, // NestJs에서 작성하는 TypeORM코드와 데이터베이스의 싱크를 자동으로 맞출건지 (개발환경에서는 true, 운영에선 false)
     }),
     UsersModule,
+    AuthModule,
   ],
   controllers: [AppController],
   providers: [AppService],

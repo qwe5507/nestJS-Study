@@ -26,4 +26,12 @@ export class UsersService {
   async getAllUsers() {
     return this.usersRepository.find();
   }
+
+  async getUserByEmail(email: string) {
+    return this.usersRepository.findOne({
+      where: {
+        email,
+      },
+    });
+  }
 }
