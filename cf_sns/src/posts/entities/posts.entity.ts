@@ -1,12 +1,15 @@
-import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
+import { Column, Entity, ManyToOne, PrimaryGeneratedColumn } from "typeorm";
+import { UsersModel } from "../../users/entities/users.entity";
 
 @Entity()
 export class PostsModel {
   @PrimaryGeneratedColumn() // 자동으로 id 하나씩 올라감
   id: number;
 
-  @Column()
-  author: string;
+  @ManyToOne(() => UsersModel, (user) => user.posts, {
+    nullable: false,
+  })
+  author: UsersModel;
 
   @Column()
   title: string;
