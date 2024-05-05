@@ -81,6 +81,42 @@ export class AuthService {
   }
 
   /**
+   * 토큰 검증
+   */
+  verifyToken(token: string) {
+    return this.jwtService.verify(token, {
+      secret: JWT_SECRET,
+    });
+  }
+
+  /**
+   * 토큰 새로 발급
+   * isRefreshToken: 새로 발급 받고자 하는 토큰이 리플래쉬 토큰인지
+   */
+  rotateToken(token: string, isRefreshToken: boolean) {
+    const decoded = this.jwtService.verify(token, {
+      secret: JWT_SECRET,
+    }); // verify의 반환 값에 payload 리턴 됨
+
+    /**
+     * payload 값
+     *   sub: id
+     *   email: email
+     *   type: 'access' | 'refresh'
+     */
+    if (decoded.type !== 'refresh') {
+      throw new UnauthorizedException('토큰 재발급은 Refresh 토큰으로만 가능합니다!.');
+    }
+
+    return this.signToken(
+      {
+        ...decoded,
+      },
+      isRefreshToken,
+    );
+  }
+
+  /**
    * 우리가 만드려는 기능
    *
    * 1) registerWithEmail
