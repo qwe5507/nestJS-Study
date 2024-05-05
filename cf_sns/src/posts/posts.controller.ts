@@ -1,13 +1,14 @@
 import {
   Body,
   Controller,
+  DefaultValuePipe,
   Delete,
   Get,
   Param,
   ParseIntPipe,
   Patch,
-  Post,
-} from '@nestjs/common';
+  Post
+} from "@nestjs/common";
 import { PostsService } from './posts.service';
 
 @Controller('posts')
@@ -35,7 +36,9 @@ export class PostsController {
     @Body('authorId') authorId: number, // json, form 다 받음
     @Body('title') title: string,
     @Body('content') content: string,
+    @Body('isPublic', new DefaultValuePipe(true)) isPublic: boolean,
   ) {
+    console.log(isPublic);
     return this.postsService.createPost(authorId, title, content);
   }
 
