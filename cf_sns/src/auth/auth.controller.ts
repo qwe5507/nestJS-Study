@@ -2,6 +2,7 @@ import { Body, Controller, Post, Headers, UseGuards, Request } from "@nestjs/com
 import { AuthService } from './auth.service';
 import { MaxLengthPipe, MinLengthPipe, PasswordPipe } from "./pipe/password.pipe";
 import { BasicTokenGuard } from "./guard/basic-token.guard";
+import { AccessTokenGuard, RefreshTokenGuard } from "./guard/bearer-token.guard";
 
 @Controller('auth')
 export class AuthController {
@@ -11,6 +12,7 @@ export class AuthController {
    * access token 재발급
    */
   @Post('token/access')
+  @UseGuards(RefreshTokenGuard)
   postTokenAccess(@Headers('authorization') rawToken: string) {
     const token = this.authService.extractTokenFromHeader(rawToken, true);
 
@@ -28,6 +30,7 @@ export class AuthController {
    * refresh token 재발급
    */
   @Post('token/refresh')
+  @UseGuards(RefreshTokenGuard)
   postTokenRefresh(@Headers('authorization') rawToken: string) {
     const token = this.authService.extractTokenFromHeader(rawToken, true);
 
@@ -45,7 +48,6 @@ export class AuthController {
   @UseGuards(BasicTokenGuard)
   postLoginEmail(
     @Headers('authorization') rawToken: string,
-    @Request() req,
   ) {
     const token = this.authService.extractTokenFromHeader(rawToken, false);
 
