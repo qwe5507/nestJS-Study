@@ -3,6 +3,7 @@ import { Repository } from 'typeorm';
 import { PostsModel } from './entities/posts.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { CreatePostDto } from "./dto/create-post.dto";
+import { UpdatePostDto } from "./dto/update-post.dto";
 
 /**
  * author: string;
@@ -92,7 +93,8 @@ export class PostsService {
     return newPost;
   }
 
-  async modifyPost(id: number, title: string, content: string) {
+  async modifyPost(id: number, postDto: UpdatePostDto) {
+    const { title, content } = postDto;
     // save의 기능
     // 1) 만약 데이터가 존재하지 않으면 새로 생성한다.
     // 2) 만약에 데이터가 존재한다면(같은 id의 값이 존재한다면) 업데이트 한다.
