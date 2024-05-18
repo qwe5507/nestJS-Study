@@ -19,7 +19,6 @@ export class UsersController {
   // }
 
   @Get()
-  @UseInterceptors(ClassSerializerInterceptor)
   getUsers() {
     return this.usersService.getAllUsers();
   }
