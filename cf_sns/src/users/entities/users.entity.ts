@@ -9,7 +9,7 @@ import { emailValidationMessage } from "../../common/validation-message/email-va
 import { Exclude, Expose } from "class-transformer";
 
 @Entity()
-@Exclude()
+// @Exclude()
 export class UsersModel extends BaseModel {
   // 1) 길이가 20을 넘지 않을 것
   // 2) 유일무이한 값이 될 것

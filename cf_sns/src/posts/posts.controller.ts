@@ -6,14 +6,15 @@ import {
   Param,
   ParseIntPipe,
   Patch,
-  Post,
-  UseGuards,
-} from '@nestjs/common';
+  Post, Query,
+  UseGuards
+} from "@nestjs/common";
 import { PostsService } from './posts.service';
 import { AccessTokenGuard } from '../auth/guard/bearer-token.guard';
 import { User } from '../users/decorator/user.decorator';
 import { CreatePostDto } from './dto/create-post.dto';
 import { UpdatePostDto } from './dto/update-post.dto';
+import { PaginatePostDto } from "./dto/paginate-post.dto";
 
 @Controller('posts')
 export class PostsController {
@@ -21,7 +22,7 @@ export class PostsController {
 
   // 1) GET /posts
   @Get()
-  getPosts() {
+  getPosts(@Query() query: PaginatePostDto) {
     return this.postsService.getAllPosts();
   }
 
