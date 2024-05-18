@@ -6,9 +6,10 @@ import { IsEmail, IsString, Length, ValidationArguments } from "class-validator"
 import { lengthValidationMessage } from "../../common/validation-message/length-validation.message";
 import { stringValidationMessage } from "../../common/validation-message/string-validation.message";
 import { emailValidationMessage } from "../../common/validation-message/email-validation.message";
-import { Exclude } from "class-transformer";
+import { Exclude, Expose } from "class-transformer";
 
 @Entity()
+@Exclude()
 export class UsersModel extends BaseModel {
   // 1) 길이가 20을 넘지 않을 것
   // 2) 유일무이한 값이 될 것
@@ -22,6 +23,7 @@ export class UsersModel extends BaseModel {
   @Length(1, 20, {
     message: lengthValidationMessage,
   })
+  @Expose()
   nickname: string;
 
   // 1) 유일무이한 값이 될 것
@@ -38,6 +40,11 @@ export class UsersModel extends BaseModel {
     },
   )
   email: string;
+
+  // @Expose()
+  // get nicknameAndEmail() {
+  //   return this.nickname + '/' + this.email;
+  // }
 
   @Column()
   @IsString({
