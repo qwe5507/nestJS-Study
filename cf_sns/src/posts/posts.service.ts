@@ -1,5 +1,5 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { MoreThan, Repository } from "typeorm";
+import { FindOptionsWhere, LessThan, MoreThan, Repository } from "typeorm";
 import { PostsModel } from './entities/posts.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { CreatePostDto } from "./dto/create-post.dto";
@@ -73,13 +73,18 @@ export class PostsService {
     }
   }
 
-  // 1) 일단 오름차순으로 정렬하는 pagination만 구현한다.
   async paginatePosts(dto: PaginatePostDto) {
+    const where: FindOptionsWhere<PostsModel> = {};
+
+    if (dto.where__id_less_than) {
+      where.id = LessThan(dto.where__id_less_than);
+    } else if (dto.where__id_more_than) {
+      where.id = MoreThan(dto.where__id_more_than);
+    }
+
     //
     const posts = await this.postsRepository.find({
-      where: {
-        id: MoreThan(dto.where__id_more_than ?? 0),
-      },
+      where: where,
       order: {
         createdAt: dto.order__createdAt,
       },
@@ -107,13 +112,20 @@ export class PostsService {
          * dto의 키값들을 루핑하면서, 키값에 해당되는 밸류가 존재하면 param에 그대로 붙여 넣는다.
          */
         if (dto[key]) {
-          if (key !== 'where__id_more_than') {
+          if (key !== 'where__id_more_than' && key !== 'where__id_less_than') {
             nextUrl.searchParams.append(key, dto[key]);
           }
         }
       }
 
-      nextUrl.searchParams.append('where__id_more_than', lastItem.id.toString());
+      let key = null;
+      if (dto.order__createdAt === 'ASC') {
+        key = 'where__id_more_than';
+      } else {
+        key = 'where__id_less_than';
+      }
+
+      nextUrl.searchParams.append(key, lastItem.id.toString());
     }
 
     return {
