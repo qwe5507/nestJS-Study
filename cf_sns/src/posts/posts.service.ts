@@ -96,7 +96,10 @@ export class PostsService {
      *   next: 다음 요청 할 때 사용할 URL
      * }
      */
-    const lastItem = posts.length > 0 ? posts[posts.length - 1] : null;
+    const lastItem =
+      posts.length > 0 && posts.length === dto.take
+        ? posts[posts.length - 1]
+        : null;
     const nextUrl = lastItem && new URL(`${PROTOCAL}://${HOST}/posts`);
     if (nextUrl) {
       for (const key of Object.keys(dto)) {
@@ -116,9 +119,9 @@ export class PostsService {
     return {
       data: posts,
       cursor: {
-        after: lastItem?.id,
+        after: lastItem?.id ?? null,
         count: posts.length,
-        next: nextUrl?.toString(),
+        next: nextUrl?.toString() ?? null,
       },
     }
   }
