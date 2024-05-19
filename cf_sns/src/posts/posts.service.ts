@@ -5,6 +5,8 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { CreatePostDto } from "./dto/create-post.dto";
 import { UpdatePostDto } from "./dto/update-post.dto";
 import { PaginatePostDto } from "./dto/paginate-post.dto";
+import { count } from "rxjs";
+import { HOST, PROTOCAL } from "../common/const/env.const";
 
 /**
  * author: string;
@@ -94,13 +96,31 @@ export class PostsService {
      *   next: 다음 요청 할 때 사용할 URL
      * }
      */
-    return posts;
-    // return {
-    //   data: posts,
-    //   cursor: {
-    //     after:
-    //   }
-    // }
+    const lastItem = posts.length > 0 ? posts[posts.length - 1] : null;
+    const nextUrl = lastItem && new URL(`${PROTOCAL}://${HOST}/posts`);
+    if (nextUrl) {
+      for (const key of Object.keys(dto)) {
+        /**
+         * dto의 키값들을 루핑하면서, 키값에 해당되는 밸류가 존재하면 param에 그대로 붙여 넣는다.
+         */
+        if (dto[key]) {
+          if (key !== 'where__id_more_than') {
+            nextUrl.searchParams.append(key, dto[key]);
+          }
+        }
+      }
+
+      nextUrl.searchParams.append('where__id_more_than', lastItem.id.toString());
+    }
+
+    return {
+      data: posts,
+      cursor: {
+        after: lastItem?.id,
+        count: posts.length,
+        next: nextUrl?.toString(),
+      },
+    }
   }
 
   async getPostById(id: number) {
