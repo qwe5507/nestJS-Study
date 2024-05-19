@@ -23,7 +23,8 @@ export class PostsController {
   // 1) GET /posts
   @Get()
   getPosts(@Query() query: PaginatePostDto) {
-    return this.postsService.getAllPosts();
+    // return this.postsService.getAllPosts();
+    return this.postsService.paginatePosts(query);
   }
 
   // 2) GET /posts/:id
