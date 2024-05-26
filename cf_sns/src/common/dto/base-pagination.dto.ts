@@ -7,14 +7,14 @@ export class BasePaginationDto {
 
   @IsNumber()
   @IsOptional()
-  where__id_less_than?: number;
+  where__id__less_than?: number;
 
   // 이전 마지막 데이터의 id
   // 이 프로퍼티에 입력된 id 보다 높은 id 부터 값을 가져오기
   // @Type(() => Number)
   @IsNumber()
   @IsOptional()
-  where__id_more_than?: number;
+  where__id__more_than?: number;
 
   // 정렬
   @IsIn(['ASC', 'DESC']) // 특정 데이터가 들어와야만 통과
