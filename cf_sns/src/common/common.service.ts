@@ -1,7 +1,8 @@
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable } from "@nestjs/common";
 import { BasePaginationDto } from './dto/base-pagination.dto';
 import { FindManyOptions, FindOptionsWhere, Repository } from "typeorm";
 import { BaseModel } from './entity/base.entity';
+import { FILTER_MAPPER } from "./const/filter-mapper.const";
 
 @Injectable()
 export class CommonService {
@@ -101,7 +102,74 @@ export class CommonService {
   }
 
   private parseWhereFilter<T extends BaseModel>(key: string, value: any): FindOptionsWhere<T> {
+    const options = FindOptionsWhere<T> = {};
 
+    /**
+     * 예를들어 where__id__more_than
+     * __를 기준으로 나누었을때
+     *
+     * ['where', 'id', 'more_than']
+     */
+    const split = key.split('__');
+
+    if (split.length !== 2 && split.length !== 3) {
+      throw new BadRequestException(
+        `where 필터는 '__'로 스플릿 했을때 길이가 2 또는 3이어야 합니다. - 문제되는 키 값 : ${key}`,
+      );
+    }
+    /**
+     * 길이가 2일 경우
+     * where__id = 3
+     *
+     * FindOptionsWhere로 풀어보면 아래와 같다.
+     * {
+     *   where : {
+     *     id: 3,
+     *   }
+     * }
+     */
+    if (split.length === 2) {
+      // ['where', 'id']
+      const [_, field] = split;
+
+      /**
+       * field -> 'id'
+       * value -> 3
+       * {
+       *   id : 3,
+       * }
+       */
+      options[field] = value;
+    } else {
+      /**
+       * 길이가 3일 경우에는 TypeORM 유틸리티 적용이 필요한 경우이다.
+       * where__id__more_than의 경우
+       * where는 버려도 되고 두번째 값은 필터할 키 값이 되고
+       * 세번째 값은 typeORM 유틸리티가 된다.
+       *
+       * FILTER_MAPPER에 미리 정의해둔 값들로
+       * field 값에 FILTER_MAPPER에서 해당하는 utility를 가져온 후
+       * 값에 적용 해준다.
+       */
+      // ['where', 'id', 'more_than']
+      const [_, field, operator] = split;
+
+      // where__id__between = 3,4
+      // 만약에 split대상 문자열이 존재하지 않으면 길이가 무조건 1이다.
+      // const value = value.toString().split(',');
+      // field -> id
+      // operator -> more_than
+      // FILTER_MAPPER[operator] -> MoreThan
+      // if (operator = 'between') { // operator기능의 인자가 여러개인 건 이렇게 수동으로 추가해줘야 함
+      //   options[field] = FILTER_MAPPER[operator](value[0], value[1]);
+      // } else {
+      //   options[field] = FILTER_MAPPER[operator](value);
+      // }
+      // 단일 값만 넣는다고 가정하고 진행
+      options[field] = FILTER_MAPPER[operator](value);
+    }
+
+    return options;
   }
 
   private parseOrderFilter<T extends BaseModel>(key: string, value: any): FindOptionsWhere<T> {
