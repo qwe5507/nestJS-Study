@@ -219,7 +219,12 @@ export class CommonService {
       //   options[field] = FILTER_MAPPER[operator](value);
       // }
       // 단일 값만 넣는다고 가정하고 진행
-      options[field] = FILTER_MAPPER[operator](value);
+
+      if (operator === 'i_like') {
+        options[field] = FILTER_MAPPER[operator](`%${value}%`);
+      } else {
+        options[field] = FILTER_MAPPER[operator](value);
+      }
     }
 
     return options;
