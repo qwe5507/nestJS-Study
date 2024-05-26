@@ -7,6 +7,7 @@ import { UpdatePostDto } from "./dto/update-post.dto";
 import { PaginatePostDto } from "./dto/paginate-post.dto";
 import { count } from "rxjs";
 import { HOST, PROTOCAL } from "../common/const/env.const";
+import { CommonService } from "../common/common.service";
 
 /**
  * author: string;
@@ -56,6 +57,7 @@ export class PostsService {
   constructor(
     @InjectRepository(PostsModel)
     private readonly postsRepository: Repository<PostsModel>,
+    private readonly commonService: CommonService,
   ) {}
 
   async getAllPosts() {
@@ -74,11 +76,13 @@ export class PostsService {
   }
 
   async paginatePosts(dto: PaginatePostDto) {
-    if (dto.page) {
-      return this.pagePaginatePosts(dto);
-    } else {
-      return this.cursorPaginatePosts(dto);
-    }
+    return this.commonService.paginate(
+      dto, this.postsRepository, {}, 'posts');
+    // if (dto.page) {
+    //   return this.pagePaginatePosts(dto);
+    // } else {
+    //   return this.cursorPaginatePosts(dto);
+    // }
   }
 
   async pagePaginatePosts(dto: PaginatePostDto) {
