@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { BasePaginationDto } from './dto/base-pagination.dto';
-import { FindManyOptions, Repository } from 'typeorm';
+import { FindManyOptions, FindOptionsWhere, Repository } from "typeorm";
 import { BaseModel } from './entity/base.entity';
 
 @Injectable()
@@ -43,7 +43,7 @@ export class CommonService {
   private composeFindOptions<T extends BaseModel>(
     dto: BasePaginationDto,
   ): FindManyOptions<T> {
-    /**
+    /** 반환 값
      * where,
      * order,
      * take,
@@ -72,5 +72,39 @@ export class CommonService {
      * 4) order의 경우 3-2와 같이 적용한다.(항상 두개로 split되기 떄문에)
      *
      */
+    let where: FindOptionsWhere<T> = {};
+    let order: FindOptionsWhere<T> = {};
+
+    for (const [key, value] of Object.entries(dto)) {
+      // key -> where__id__more_than
+      // value -> 1
+
+      if (key.startsWith('where__')) {
+        where = {
+          ...where,
+          ...this.parseWhereFilter(key, value),
+        }
+      } else if (key.startsWith('order__')) {
+        order = {
+          ...order,
+          ...this.parseOrderFilter(key, value),
+        }
+      }
+    }
+
+    return {
+      where,
+      order,
+      take: dto.take,
+      skip: dto.page ? dto.take * (dto.page - 1) : null,
+    }
+  }
+
+  private parseWhereFilter<T extends BaseModel>(key: string, value: any): FindOptionsWhere<T> {
+
+  }
+
+  private parseOrderFilter<T extends BaseModel>(key: string, value: any): FindOptionsWhere<T> {
+
   }
 }
