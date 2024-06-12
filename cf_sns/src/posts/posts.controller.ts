@@ -46,12 +46,14 @@ export class PostsController {
   // 3) POST /posts
   @Post()
   @UseGuards(AccessTokenGuard)
-  postPosts(
+  async postPosts(
     @User('id') userId: number,
     @Body() body: CreatePostDto,
     // @Body('isPublic', new DefaultValuePipe(true)) isPublic: boolean,
   ) {
     // console.log(isPublic);
+
+    await this.postsService.createPostImage(body);
 
     return this.postsService.createPost(userId, body);
   }
