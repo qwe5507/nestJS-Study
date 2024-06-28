@@ -32,7 +32,7 @@ export class ImageModel extends BaseModel {
   @IsString()
   @Transform(({ value, obj }) => {
     if (obj.type === ImageModelType.POST_IMAGE) {
-      return value && `/${join(POST_PUBLIC_IMAGE_PATH, value)}`
+      return value && `/${join(POST_PUBLIC_IMAGE_PATH, value)}`;
     } else {
       return value;
     }
