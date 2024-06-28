@@ -7,10 +7,14 @@ import { UpdatePostDto } from "./dto/update-post.dto";
 import { PaginatePostDto } from "./dto/paginate-post.dto";
 import { UsersModel } from "../users/entities/users.entity";
 import { ImageModelType } from "../common/entity/image.entity";
+import { DataSource } from "typeorm";
 
 @Controller('posts')
 export class PostsController {
-  constructor(private readonly postsService: PostsService) {}
+  constructor(
+    private readonly postsService: PostsService,
+    private readonly dataSource: DataSource,
+  ) {}
 
   // 1) GET /posts
   @Get()
@@ -43,18 +47,37 @@ export class PostsController {
   ) {
     // console.log(isPublic);
 
-    const post = await this.postsService.createPost(userId, body);
+    // 트랜 잭션과 관련된 모든 쿼리를 담당할
+    // 쿼리 러너 생성
+    const qr = this.dataSource.createQueryRunner();
+    // 쿼리 러너에 연결한다.
+    await qr.connect();
+    // 쿼리 러너에서 트랜잭션을 시작한다.
+    // 이 시점부터 같은 쿼리 러너를 사용하면 트랜잭션 안에서 데이터베이스 액션을 실행 할 수 있다.
+    await qr.startTransaction();
 
-    for (let i = 0; i < body.images.length; i++) {
-      await this.postsService.createPostImage({
-        post,
-        order: i,
-        path: body.images[i],
-        type: ImageModelType.POST_IMAGE,
-      });
+    // 로직 실행
+    try {
+      const post = await this.postsService.createPost(userId, body, qr);
+
+      for (let i = 0; i < body.images.length; i++) {
+        await this.postsService.createPostImage({
+          post,
+          order: i,
+          path: body.images[i],
+          type: ImageModelType.POST_IMAGE,
+        });
+      }
+
+      await qr.commitTransaction();
+      await qr.release();
+
+      return this.postsService.getPostById(post.id);
+    } catch (e) {
+      // 어떤 에러든 에러가 던져지면 롤백
+      await qr.rollbackTransaction();
+      await qr.release();
     }
-
-    return this.postsService.getPostById(post.id);
   }
 
   // 4) Patch /posts
