@@ -8,8 +8,8 @@ import {
   Patch,
   Post,
   Query,
-  UseGuards,
-} from '@nestjs/common';
+  UseGuards, UseInterceptors
+} from "@nestjs/common";
 import { PostsService } from './posts.service';
 import { AccessTokenGuard } from '../auth/guard/bearer-token.guard';
 import { User } from '../users/decorator/user.decorator';
@@ -20,6 +20,7 @@ import { UsersModel } from '../users/entities/users.entity';
 import { ImageModelType } from '../common/entity/image.entity';
 import { DataSource } from 'typeorm';
 import { PostsImagesService } from './image/images.service';
+import { LogInterceptor } from "../common/interceptor/log.interceptor";
 
 @Controller('posts')
 export class PostsController {
@@ -31,6 +32,7 @@ export class PostsController {
 
   // 1) GET /posts
   @Get()
+  @UseInterceptors(LogInterceptor)
   getPosts(@Query() query: PaginatePostDto) {
     // return this.postsService.getAllPosts();
     return this.postsService.paginatePosts(query);
