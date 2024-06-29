@@ -1,18 +1,31 @@
-import { Body, Controller, Delete, Get, Param, ParseIntPipe, Patch, Post, Query, UseGuards } from "@nestjs/common";
-import { PostsService } from "./posts.service";
-import { AccessTokenGuard } from "../auth/guard/bearer-token.guard";
-import { User } from "../users/decorator/user.decorator";
-import { CreatePostDto } from "./dto/create-post.dto";
-import { UpdatePostDto } from "./dto/update-post.dto";
-import { PaginatePostDto } from "./dto/paginate-post.dto";
-import { UsersModel } from "../users/entities/users.entity";
-import { ImageModelType } from "../common/entity/image.entity";
-import { DataSource } from "typeorm";
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  Param,
+  ParseIntPipe,
+  Patch,
+  Post,
+  Query,
+  UseGuards,
+} from '@nestjs/common';
+import { PostsService } from './posts.service';
+import { AccessTokenGuard } from '../auth/guard/bearer-token.guard';
+import { User } from '../users/decorator/user.decorator';
+import { CreatePostDto } from './dto/create-post.dto';
+import { UpdatePostDto } from './dto/update-post.dto';
+import { PaginatePostDto } from './dto/paginate-post.dto';
+import { UsersModel } from '../users/entities/users.entity';
+import { ImageModelType } from '../common/entity/image.entity';
+import { DataSource } from 'typeorm';
+import { PostsImagesService } from './image/images.service';
 
 @Controller('posts')
 export class PostsController {
   constructor(
     private readonly postsService: PostsService,
+    private readonly postsImagesService: PostsImagesService,
     private readonly dataSource: DataSource,
   ) {}
 
@@ -61,12 +74,15 @@ export class PostsController {
       const post = await this.postsService.createPost(userId, body, qr);
 
       for (let i = 0; i < body.images.length; i++) {
-        await this.postsService.createPostImage({
-          post,
-          order: i,
-          path: body.images[i],
-          type: ImageModelType.POST_IMAGE,
-        });
+        await this.postsImagesService.createPostImage(
+          {
+            post,
+            order: i,
+            path: body.images[i],
+            type: ImageModelType.POST_IMAGE,
+          },
+          qr,
+        );
       }
 
       await qr.commitTransaction();
