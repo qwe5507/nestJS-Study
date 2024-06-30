@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   Body,
   Controller,
   Delete,
@@ -7,7 +8,7 @@ import {
   ParseIntPipe,
   Patch,
   Post,
-  Query,
+  Query, UseFilters,
   UseGuards, UseInterceptors
 } from "@nestjs/common";
 import { PostsService } from './posts.service';
@@ -23,6 +24,7 @@ import { LogInterceptor } from "../common/interceptor/log.interceptor";
 import { TransactionInterceptor } from "../common/interceptor/transaction.interceptor";
 import { DataSource, QueryRunner as QR } from 'typeorm';
 import { QueryRunner } from "../common/decorator/query-runner.decorator";
+import { HttpExceptionFilter } from "../common/exception-filter/http.exception-filter";
 
 @Controller('posts')
 export class PostsController {
@@ -35,6 +37,7 @@ export class PostsController {
   // 1) GET /posts
   @Get()
   @UseInterceptors(LogInterceptor)
+  // @UseFilters(HttpExceptionFilter)
   getPosts(@Query() query: PaginatePostDto) {
     // return this.postsService.getAllPosts();
     return this.postsService.paginatePosts(query);
