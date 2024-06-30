@@ -1,18 +1,14 @@
-import { BadRequestException, Module } from "@nestjs/common";
-import { PostsService } from './posts.service';
-import { PostsController } from './posts.controller';
-import { TypeOrmModule } from '@nestjs/typeorm';
-import { PostsModel } from './entities/posts.entity';
+import { MiddlewareConsumer, Module, NestModule, RequestMethod } from "@nestjs/common";
+import { PostsService } from "./posts.service";
+import { PostsController } from "./posts.controller";
+import { TypeOrmModule } from "@nestjs/typeorm";
+import { PostsModel } from "./entities/posts.entity";
 import { AuthModule } from "../auth/auth.module";
 import { UsersModule } from "../users/users.module";
-import { CommonModule } from '../common/common.module';
-import { MulterModule } from '@nestjs/platform-express';
-import { extname } from 'path';
-import * as multer from 'multer';
-import { POST_IMAGE_PATH } from '../common/const/path.const';
-import { v4 as uuid } from 'uuid';
+import { CommonModule } from "../common/common.module";
 import { ImageModel } from "../common/entity/image.entity";
 import { PostsImagesService } from "./image/images.service";
+import { LogMiddleware } from "../common/middleware/log.middleware";
 
 @Module({
   imports: [
@@ -24,4 +20,11 @@ import { PostsImagesService } from "./image/images.service";
   controllers: [PostsController],
   providers: [PostsService, PostsImagesService],
 })
-export class PostsModule {}
+export class PostsModule implements NestModule {
+  configure(consumer: MiddlewareConsumer): any {
+    consumer.apply(LogMiddleware).forRoutes({
+      path: 'posts*',
+      method: RequestMethod.GET,
+    });
+  }
+}

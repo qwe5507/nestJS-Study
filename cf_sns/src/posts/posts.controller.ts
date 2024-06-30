@@ -36,7 +36,7 @@ export class PostsController {
 
   // 1) GET /posts
   @Get()
-  @UseInterceptors(LogInterceptor)
+  // @UseInterceptors(LogInterceptor)
   // @UseFilters(HttpExceptionFilter)
   getPosts(@Query() query: PaginatePostDto) {
     // return this.postsService.getAllPosts();
@@ -71,7 +71,7 @@ export class PostsController {
 
     const post = await this.postsService.createPost(userId, body, qr);
 
-    throw new InternalServerErrorException('test');
+    // throw new InternalServerErrorException('test');
 
     for (let i = 0; i < body.images.length; i++) {
       await this.postsImagesService.createPostImage(
