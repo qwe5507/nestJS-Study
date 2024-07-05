@@ -3,14 +3,18 @@ import {
   OnGatewayConnection,
   SubscribeMessage,
   WebSocketGateway,
+  WebSocketServer,
 } from '@nestjs/websockets';
-import { Socket } from 'socket.io';
+import { Server, Socket } from 'socket.io';
 
 @WebSocketGateway({
   // ws://localhost:3000/chats
   namespace: 'chats',
 })
 export class ChatsGateway implements OnGatewayConnection {
+  @WebSocketServer()
+  server: Server;
+
   handleConnection(socket: Socket): any {
     console.log(`on connect called : ${socket.id}`);
   }
@@ -19,5 +23,6 @@ export class ChatsGateway implements OnGatewayConnection {
   @SubscribeMessage('send_message')
   sendMessage(@MessageBody() message: string) {
     console.log(message);
+    this.server.emit('receive_message', 'hello from server');
   }
 }
