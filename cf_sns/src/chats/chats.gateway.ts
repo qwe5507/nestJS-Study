@@ -40,8 +40,11 @@ export class ChatsGateway implements OnGatewayConnection {
   ) {
     console.log(message);
     // this.server.emit('receive_message', 'hello from server');
-    this.server
-      .in(message.chatId.toString()) // 특정 Room에만 전송
+    // this.server
+    //   .in(message.chatId.toString()) // 특정 Room에만 전송
+    //   .emit('receive_message', message.message);
+    socket
+      .to(message.chatId.toString()) // 자기를 제외한 대상자들에게 보냄(Broadcasting)
       .emit('receive_message', message.message);
   }
 }
