@@ -4,14 +4,15 @@ import {
   OnGatewayConnection,
   SubscribeMessage,
   WebSocketGateway,
-  WebSocketServer, WsException
-} from "@nestjs/websockets";
+  WebSocketServer,
+  WsException,
+} from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
-import { CreateChatDto } from "./dto/create-chat.dto";
-import { Injectable } from "@nestjs/common";
-import { ChatsService } from "./chats.service";
-import { raw } from "express";
-import { EnterChatDto } from "./dto/enter-chat.dto";
+import { CreateChatDto } from './dto/create-chat.dto';
+import { ChatsService } from './chats.service';
+import { EnterChatDto } from './dto/enter-chat.dto';
+import { CreateMessagesDto } from './messages/entity/create-messages.dto';
+import { ChatsMessagesService } from './messages/messages.service';
 
 @WebSocketGateway({
   // ws://localhost:3000/chats
@@ -20,7 +21,8 @@ import { EnterChatDto } from "./dto/enter-chat.dto";
 export class ChatsGateway implements OnGatewayConnection {
   constructor(
     private readonly chatsService: ChatsService,
-  ) { }
+    private readonly messageService: ChatsMessagesService,
+  ) {}
 
   @WebSocketServer()
   server: Server;
@@ -59,17 +61,22 @@ export class ChatsGateway implements OnGatewayConnection {
 
   // socket.on('send_message', (message) => {console.log(message)});
   @SubscribeMessage('send_message')
-  sendMessage(
-    @MessageBody() message: { message: string; chatId: number },
+  async sendMessage(
+    @MessageBody() dto: CreateMessagesDto,
     @ConnectedSocket() socket: Socket,
   ) {
-    console.log(message);
-    // this.server.emit('receive_message', 'hello from server');
-    // this.server
-    //   .in(message.chatId.toString()) // 특정 Room에만 전송
-    //   .emit('receive_message', message.message);
+    const chatExists = await this.chatsService.checkIfChatExists(dto.chatId);
+
+    if (!chatExists) {
+      throw new WsException(
+        `존재하지 않는 채팅방입니다. Chat Id: ${dto.chatId}`,
+      );
+    }
+
+    const message = await this.messageService.createMessage(dto);
+
     socket
-      .to(message.chatId.toString()) // 자기를 제외한 대상자들에게 보냄(Broadcasting)
+      .to(message.chat.id.toString()) // 자기를 제외한 대상자들에게 보냄(Broadcasting)
       .emit('receive_message', message.message);
   }
 }
