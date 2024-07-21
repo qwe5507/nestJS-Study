@@ -22,6 +22,8 @@ import {
 import { SocketCatchHttpExceptionFilter } from '../common/exception-filter/socket-catch-http.exception-filter';
 import { SocketBearerTokenGuard } from '../auth/guard/socket/socket-bearer-token.guard';
 import { UsersModel } from '../users/entities/users.entity';
+import { UsersService } from "../users/users.service";
+import { AuthService } from "../auth/auth.service";
 
 @WebSocketGateway({
   // ws://localhost:3000/chats
@@ -31,13 +33,37 @@ export class ChatsGateway implements OnGatewayConnection {
   constructor(
     private readonly chatsService: ChatsService,
     private readonly messageService: ChatsMessagesService,
+    private readonly userService: UsersService,
+    private readonly authService: AuthService,
   ) {}
 
   @WebSocketServer()
   server: Server;
 
-  handleConnection(socket: Socket): any {
+  async handleConnection(socket: Socket & { user: UsersModel }) {
     console.log(`on connect called : ${socket.id}`);
+
+    const headers = socket.handshake.headers;
+
+    // Bearer xxxxxx
+    const rawToken = headers['authorization'];
+
+    if (!rawToken) {
+      socket.disconnect();
+    }
+
+    try {
+      const token = this.authService.extractTokenFromHeader(rawToken, true);
+
+      const payload = this.authService.verifyToken(token);
+      const user = await this.userService.getUserByEmail(payload.email);
+
+      socket.user = user;
+
+      return true;
+    } catch (e) {
+      socket.disconnect();
+    }
   }
 
   @UsePipes(
@@ -52,7 +78,6 @@ export class ChatsGateway implements OnGatewayConnection {
   )
   @SubscribeMessage('create_chat')
   @UseFilters(SocketCatchHttpExceptionFilter)
-  @UseGuards(SocketBearerTokenGuard)
   async createChat(
     @MessageBody() data: CreateChatDto,
     @ConnectedSocket() socket: Socket & { user: UsersModel },
@@ -62,7 +87,6 @@ export class ChatsGateway implements OnGatewayConnection {
   }
 
   @SubscribeMessage('enter_chat')
-  @UseGuards(SocketBearerTokenGuard)
   @UsePipes(
     new ValidationPipe({
       transform: true,
@@ -77,7 +101,7 @@ export class ChatsGateway implements OnGatewayConnection {
   async enterChat(
     // 방의 ID들을 리스트로 받는다.
     @MessageBody() data: EnterChatDto,
-    @ConnectedSocket() socket: Socket,
+    @ConnectedSocket() socket: Socket & { user: UsersModel },
   ) {
     // socket.join()
     for (const chatId of data.chatIds) {
@@ -95,7 +119,6 @@ export class ChatsGateway implements OnGatewayConnection {
 
   // socket.on('send_message', (message) => {console.log(message)});
   @SubscribeMessage('send_message')
-  @UseGuards(SocketBearerTokenGuard)
   @UsePipes(
     new ValidationPipe({
       transform: true,

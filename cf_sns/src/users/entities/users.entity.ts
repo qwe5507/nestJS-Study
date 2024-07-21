@@ -56,7 +56,8 @@ export class UsersModel extends BaseModel {
     message: lengthValidationMessage,
   })
   @Exclude({
-    toPlainOnly: true
+    toPlainOnly: true, // 저희가 보내는 응답에서만 삭제를 한다.
+    // toClassOnly: true, // 저희가 받는 요청에서만 삭제를 시킨다.
   })
   password: string;
 
