@@ -13,10 +13,15 @@ import { ChatsService } from './chats.service';
 import { EnterChatDto } from './dto/enter-chat.dto';
 import { CreateMessagesDto } from './messages/entity/create-messages.dto';
 import { ChatsMessagesService } from './messages/messages.service';
-import { UseFilters, UseGuards, UsePipes, ValidationPipe } from "@nestjs/common";
-import { SocketCatchHttpExceptionFilter } from "../common/exception-filter/socket-catch-http.exception-filter";
-import { SocketBearerTokenGuard } from "../auth/guard/socket/socket-bearer-token.guard";
-import { UsersModel } from "../users/entities/users.entity";
+import {
+  UseFilters,
+  UseGuards,
+  UsePipes,
+  ValidationPipe,
+} from '@nestjs/common';
+import { SocketCatchHttpExceptionFilter } from '../common/exception-filter/socket-catch-http.exception-filter';
+import { SocketBearerTokenGuard } from '../auth/guard/socket/socket-bearer-token.guard';
+import { UsersModel } from '../users/entities/users.entity';
 
 @WebSocketGateway({
   // ws://localhost:3000/chats
@@ -57,6 +62,18 @@ export class ChatsGateway implements OnGatewayConnection {
   }
 
   @SubscribeMessage('enter_chat')
+  @UseGuards(SocketBearerTokenGuard)
+  @UsePipes(
+    new ValidationPipe({
+      transform: true,
+      transformOptions: {
+        enableImplicitConversion: true,
+      },
+      whitelist: true,
+      forbidNonWhitelisted: true,
+    }),
+  )
+  @UseFilters(SocketCatchHttpExceptionFilter)
   async enterChat(
     // 방의 ID들을 리스트로 받는다.
     @MessageBody() data: EnterChatDto,
@@ -78,9 +95,21 @@ export class ChatsGateway implements OnGatewayConnection {
 
   // socket.on('send_message', (message) => {console.log(message)});
   @SubscribeMessage('send_message')
+  @UseGuards(SocketBearerTokenGuard)
+  @UsePipes(
+    new ValidationPipe({
+      transform: true,
+      transformOptions: {
+        enableImplicitConversion: true,
+      },
+      whitelist: true,
+      forbidNonWhitelisted: true,
+    }),
+  )
+  @UseFilters(SocketCatchHttpExceptionFilter)
   async sendMessage(
     @MessageBody() dto: CreateMessagesDto,
-    @ConnectedSocket() socket: Socket,
+    @ConnectedSocket() socket: Socket & { user: UsersModel },
   ) {
     const chatExists = await this.chatsService.checkIfChatExists(dto.chatId);
 
@@ -90,7 +119,10 @@ export class ChatsGateway implements OnGatewayConnection {
       );
     }
 
-    const message = await this.messageService.createMessage(dto);
+    const message = await this.messageService.createMessage(
+      dto,
+      socket.user.id,
+    );
 
     socket
       .to(message.chat.id.toString()) // 자기를 제외한 대상자들에게 보냄(Broadcasting)
