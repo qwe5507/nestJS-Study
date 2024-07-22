@@ -1,6 +1,6 @@
 import { Column, Entity, JoinTable, ManyToMany, OneToMany } from "typeorm";
 import { RolesEnum } from "../const/roles.const";
-import { PostsModel } from "../../posts/entities/posts.entity";
+import { PostsModel } from "../../posts/entity/posts.entity";
 import { BaseModel } from "../../common/entity/base.entity";
 import { IsEmail, IsString, Length, ValidationArguments } from "class-validator";
 import { lengthValidationMessage } from "../../common/validation-message/length-validation.message";

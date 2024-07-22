@@ -6,7 +6,7 @@ import { extname } from "path";
 import * as multer from "multer";
 import { POST_IMAGE_PATH, TEMP_FOLDER_PATH } from "./const/path.const";
 import { v4 as uuid } from "uuid";
-import { UsersModel } from "../users/entities/users.entity";
+import { UsersModel } from "../users/entity/users.entity";
 import { PostsModule } from "../posts/posts.module";
 import { AuthModule } from "../auth/auth.module";
 import { UsersModule } from "../users/users.module";
