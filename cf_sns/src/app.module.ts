@@ -26,6 +26,7 @@ import { ChatsModule } from './chats/chats.module';
 import { ChatsModel } from "./chats/entity/chats.entity";
 import { MessagesModel } from "./chats/messages/entity/messages.entity";
 import { CommentsModule } from './posts/comments/comments.module';
+import { CommentsModel } from "./posts/comments/entity/comments.entity";
 
 @Module({
   imports: [
@@ -48,7 +49,7 @@ import { CommentsModule } from './posts/comments/comments.module';
       username: process.env[ENV_DB_USERNAME_KEY],
       password: process.env[ENV_DB_PASSWORD_KEY],
       database: process.env[ENV_DB_DATABASE_KEY],
-      entities: [PostsModel, UsersModel, ImageModel, ChatsModel, MessagesModel],
+      entities: [PostsModel, UsersModel, ImageModel, ChatsModel, MessagesModel, CommentsModel],
       synchronize: true, // NestJs에서 작성하는 TypeORM코드와 데이터베이스의 싱크를 자동으로 맞출건지 (개발환경에서는 true, 운영에선 false)
     }),
     UsersModule,
