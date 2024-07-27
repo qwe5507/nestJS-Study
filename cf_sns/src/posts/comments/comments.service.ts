@@ -4,6 +4,9 @@ import { PaginateCommentsDto } from './dto/paginate-comments.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { CommentsModel } from './entity/comments.entity';
 import { Repository } from 'typeorm';
+import { CreateCommentsDto } from './dto/create-comments.dto';
+import { UsersModel } from '../../users/entity/users.entity';
+import { DEFAULT_COMMENT_FIND_OPTIONS } from './const/default-post-find-options.const';
 
 @Injectable()
 export class CommentsService {
@@ -23,6 +26,7 @@ export class CommentsService {
             id: postId,
           },
         },
+        ...DEFAULT_COMMENT_FIND_OPTIONS,
       },
       `posts/${postId}/comments`,
     );
@@ -33,6 +37,7 @@ export class CommentsService {
       where: {
         id,
       },
+      ...DEFAULT_COMMENT_FIND_OPTIONS,
     });
 
     if (!comment) {
@@ -40,5 +45,15 @@ export class CommentsService {
     }
 
     return comment;
+  }
+
+  async createComment(dto: CreateCommentsDto, postId: number, author: UsersModel) {
+    return this.commentsRepository.save({
+      ...dto,
+      post: {
+        id: postId,
+      },
+      author,
+    });
   }
 }
