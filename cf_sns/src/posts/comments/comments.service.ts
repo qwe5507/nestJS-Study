@@ -1,4 +1,4 @@
-import { BadRequestException, Injectable } from "@nestjs/common";
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { CommonService } from '../../common/common.service';
 import { PaginateCommentsDto } from './dto/paginate-comments.dto';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -48,7 +48,11 @@ export class CommentsService {
     return comment;
   }
 
-  async createComment(dto: CreateCommentsDto, postId: number, author: UsersModel) {
+  async createComment(
+    dto: CreateCommentsDto,
+    postId: number,
+    author: UsersModel,
+  ) {
     return this.commentsRepository.save({
       ...dto,
       post: {
@@ -59,6 +63,16 @@ export class CommentsService {
   }
 
   async updateComment(dto: UpdateCommentsDto, commentId: number) {
+    const comment = await this.commentsRepository.findOne({
+      where: {
+        id: commentId,
+      },
+    });
+
+    if (!comment) {
+      throw new BadRequestException(`존재하지 않는 댓글입니다.`);
+    }
+
     const prevComment = await this.commentsRepository.preload({
       id: commentId,
       ...dto,
@@ -67,5 +81,21 @@ export class CommentsService {
     const newComment = await this.commentsRepository.save(prevComment);
 
     return newComment;
+  }
+
+  async deleteComment(id: number) {
+    const comment = await this.commentsRepository.findOne({
+      where: {
+        id,
+      },
+    });
+
+    if (!comment) {
+      throw new BadRequestException(`존재하지 않는 댓글입니다.`);
+    }
+
+    await this.commentsRepository.delete(id);
+
+    return id;
   }
 }
